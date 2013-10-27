@@ -2,13 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.myservice"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0"
+     >
 
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="17" />
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <application android:persistent="true"
+	<uses-permission android:name="android.permission.RAISED_THREAD_PRIORITY"/>
+	
+	
+    <application 
+        android:persistent="true"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
@@ -16,7 +21,7 @@
         <activity
             android:name="com.example.myservice.MainActivity"
             android:label="@string/app_name" >
-            <intent-filter>
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -24,25 +29,57 @@
         </activity>
         
         <service
+            android:exported="false"
             android:name="com.example.service.MyService"
             >
+            <intent-filter android:priority="1000" >
+                <action android:name="com.example.myservice"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+        
+        <service
+            android:exported="false"
+            android:name="com.example.service.NewService"
+            android:process=":new"
+            >
+            <intent-filter android:priority="1000" >
+                <action android:name="com.example.NewService"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </service>
         
         <receiver 
+            android:enabled="true"
+            android:exported="true"
             android:name="com.example.broadcast.BootBroadcast"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
             >
-            <intent-filter>  
+            <intent-filter
+                android:priority="1000">  
+                <!-- <action android:name="android.intent.action.USER_PRESENT"/>
+                <action android:name="com.example.broad.action"/>  -->
 	        	<action android:name="android.intent.action.BOOT_COMPLETED" /> 
-	        	<action android:name="com.example.broad.action"/> 
+	        	<category android:name="android.intent.category.LAUNCHER" />
 		    </intent-filter>
         </receiver>
         
         <receiver 
+            android:enabled="true"
+            android:exported="true"
             android:name="com.example.broadcast.AlarmReceiver"
             >
             <intent-filter >
                 <action android:name="com.example.alarm.action"/>
+            </intent-filter>
+        </receiver>
+        
+        <receiver 
+            android:enabled="true"
+            android:exported="true"
+            android:name="com.example.broadcast.ScreenStatusReceiver">
+            <intent-filter >
+                <action android:name="android.intent.action.USER_PRESENT"/>
+                <action android:name="android.intent.action.PACKAGE_RESTARTED" />
             </intent-filter>
         </receiver>
         

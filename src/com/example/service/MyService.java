@@ -1,11 +1,15 @@
 package com.example.service;
 
-import android.R.integer;
+import java.util.List;
+
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.ViewDebug.FlagToString;
+import android.widget.Toast;
 
 public class MyService extends Service{
 
@@ -21,7 +25,9 @@ public class MyService extends Service{
 		super.onCreate();
 		flag = true;
 		Log.i("MyService-->oncreate", "1");
-		init();
+		this.startForeground(1, new Notification());
+//		init();
+//		checkProcess();
 	}
 	
 //	public int onStartCommand(Intent intent, int flags, int startId){
@@ -29,13 +35,14 @@ public class MyService extends Service{
 //	}
 	
 	public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.v("MyService","startCommand");
+        Log.w("MyService","startCommand");
         
         flags =  START_STICKY;
         return super.onStartCommand(intent, flags, startId);
 	}
 	
 	private void init() {
+		Toast.makeText(this, "init", Toast.LENGTH_SHORT).show();
 		new Thread(){
 			public void run(){
 				try {
@@ -50,15 +57,18 @@ public class MyService extends Service{
 		}.start();
 	}
 	
+	
+	
 	@SuppressWarnings("deprecation")
 	public void onStart(Intent intent, int startId){
 		super.onStart(intent, startId);
 		Log.i("MyService-->onStart", "1");
 	}
 	
-	public void onDestory(){
-		super.onDestroy();
+	public void onDestroy(){
+//		super.onDestroy();
 		flag = false;
+		stopForeground(true);
 		Log.i("MyService-->ondesotry", "1");
 //		Intent localIntent = new Intent();
 //        localIntent.setClass(this, MyService.class);  //销毁时重新启动Service
