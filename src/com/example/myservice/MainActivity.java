@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
 	private Button startBtn;
 	private Button stopBtn;
 	
+	static Context mContext = null;
 //	ScreenStatusReceiver sReceiver;
 	
 	@Override
@@ -31,6 +32,7 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		mContext = getApplicationContext();
 		startBtn = (Button)findViewById(R.id.start);
 		stopBtn = (Button)findViewById(R.id.stop);
 		bindEvent();
@@ -57,11 +59,16 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("MainActivity-->startbtn", "1");
-				Intent intent = new Intent(MainActivity.this, MyService.class);
-				startService(intent);
-				Intent intent2 = new Intent(MainActivity.this, NewService.class);
-				startService(intent2);
-				Log.i("MainActivity", ProcessUtil.checkIsExist(getApplicationContext(), "com.example.service.MyService")+"");
+//				Intent intent = new Intent(MainActivity.this, MyService.class);
+//				startService(intent);
+//				Intent intent2 = new Intent(MainActivity.this, NewService.class);
+//				startService(intent2);
+//				Log.i("MainActivity", ProcessUtil.checkIsExist(getApplicationContext(), "com.example.service.MyService")+"");
+				
+				setContext(getApplicationContext());
+				setJNIEnv();
+				mainThread();
+				
 			}
 		});
 		
@@ -76,6 +83,31 @@ public class MainActivity extends Activity {
 		});
 	}
 	
-	
+	 //由JNI中的线程回调
+    private static void fromJNI(final int i)
+    {
+    	Log.i("Java------>fromJNI", ""+i);
+////		Intent intent = new Intent(mContext, MyService.class);
+//    	Intent intent = new Intent("com.example.myservice");
+//		mContext.startService(intent);
+////    	Intent intent = new Intent();
+////    	intent.setAction("com.example.myndktest.action.services");
+////    	context.startService(intent);
+        
+    }
+    
+    public static void callback(Context context){
+    	Log.w("MainActivity-->callback","111=============");
+    	android.content.Intent intent = new android.content.Intent("com.example.myservice");
+		context.startService(intent);
+    }
+    
+    //本地方法
+    private native void mainThread();
+    private native void setJNIEnv(); 
+    private native void setContext(Context context);
 
+	static {
+		System.loadLibrary("MyService");
+	}
 }
