@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include <stdlib.h>
 #include <sys/resource.h>
@@ -14,6 +16,7 @@ extern "C" {
 #endif
 
 #include <android/log.h>
+#define FLAG_FILE "/sdcard/gwlibrary/local/tmp/tmp.lock" //判断是否已经有守护进程在运行
 #define LOG_TAG    "myndktest -- JNILOG" // 这个是自定义的LOG的标识
 //#undef LOG // 取消默认的LOG
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG, __VA_ARGS__)
@@ -27,9 +30,12 @@ jstring Java_com_example_myservice_MainActivity_stringFromJNI(JNIEnv* env, jclas
 	return (jstring)env->NewStringUTF("string from MyNdkTest.cpp");
 }
 
-
-void mytest(JNIEnv *env, jobject context);
-void runProcess(const char* packageName, const char* serviceName);
+//判断是否已经有守护进程在运行
+int isDeamonExist();
+//使用im startservice来开启服务
+void runProcess(const char* serviceName);
+// 使用pidof命令来检测目标进程是否运行
+int isProcessExist(const char *processName);
 
 //线程数
 #define NUMTHREADS 1
@@ -37,14 +43,11 @@ void runProcess(const char* packageName, const char* serviceName);
 
 JavaVM *g_jvm = NULL;
 jobject g_obj = NULL;
-jobject g_context = NULL;
 
 void *thread_fun(void* arg){
 	JNIEnv *env;
 	jclass cls;
 	jmethodID mid;
-	jmethodID callback;
-	jfieldID context;
 
 
 	if(g_jvm->AttachCurrentThread(&env,NULL) != JNI_OK){
@@ -65,82 +68,58 @@ void *thread_fun(void* arg){
 	}
 	env->CallStaticVoidMethod(cls, mid,(int)arg);
 
-	callback  = env->GetStaticMethodID(cls, "callback", "(Landroid/content/Context;)V");
-	if (callback == NULL) {
-		LOGE("GetMethodID() callback Error.....");
-		goto error;
+	//============创建一个后台僵尸进程======================
+	pid_t pid;
+	struct rlimit r;
+	int i;
+
+	if((pid = fork()) < 0)
+	{
+		LOGI("i am deamon==1");
+			perror("fork");
+			exit(0);
+	}
+	else if(pid != 0)
+	{
+		LOGI("i am deamon==2");
 	}
 
-	context = env->GetStaticFieldID(cls, "mContext" ,"Landroid/content/Context;");
-	if(context == NULL){
-		LOGE("GetFieldID() mContext Error.....");
-		goto error;
+	setsid();
+	LOGI("i am deamon==3");
+	if((pid = fork()) < 0)
+	{
+		LOGI("i am deamon==4");
+			perror("fork");
+			exit(0);
 	}
-	jstring strmsg ;
-	strmsg = (jstring)env->NewStringUTF("string from MyNdkTest.cpp");
-//	jobject mobject ;
-//	mobject = env->GetStaticObjectField(cls, context);
-//	env->CallStaticVoidMethod(cls, callback, mobject);
-	env->CallStaticVoidMethod(cls, callback, g_context);
+	else if(pid != 0)
+	{
+		LOGI("i am deamon==5");
+	}
 
-//	while(true){
-//		LOGI("in while true=====");
-//		sleep(2);
-//	}
-	 	 pid_t pid;
-	    struct rlimit r;
-	    int i;
+	chdir("/");
+	LOGI("i am deamon==6");
+	if(r.rlim_max == RLIM_INFINITY)
+	{
+			r.rlim_max = 1024;
+	}
+	//===================================
 
-//	    umask(0);
-
-	    if((pid = fork()) < 0)
-	    {
-	    	LOGI("i am deamon==1");
-	            perror("fork");
-	            exit(0);
-	    }
-	    else if(pid != 0)
-	    {
-	    	LOGI("i am deamon==2");
-//	            exit(0);
-	    }
-
-	    setsid();
-	    LOGI("i am deamon==3");
-	    if((pid = fork()) < 0)
-	    {
-	    	LOGI("i am deamon==4");
-	            perror("fork");
-	            exit(0);
-	    }
-	    else if(pid != 0)
-	    {
-	    	LOGI("i am deamon==5");
-//	            exit(0);
-	    }
-
-	    chdir("/");
-	    LOGI("i am deamon==6");
-	    if(r.rlim_max == RLIM_INFINITY)
-	    {
-	            r.rlim_max = 1024;
-	    }
-//	    for(i = 0; i < r.rlim_max; i++)
-//	    {
-//	            close(i);
-//	    }
-
-	    while(1)
-	    {
-//			printf("i am deamon");
-			LOGI("i am deamon sucess myservice====");
-//			env->CallStaticVoidMethod(cls, callback, g_context);
-			env->CallStaticVoidMethod(cls, mid,(int)arg);
-			runProcess("com.example.MyService","com.example.myservice");
-			sleep(2);
-	    }
-
-
+	int isExit;
+	isExit = -3;
+//	isExit = isDeamonExist();
+	LOGI("%d isDeamonExist ============",isExit);
+	if(isExit == -1){
+		return NULL;
+	}
+	while(1)
+	{
+		LOGI("i am deamon sucess myservice====");
+		isExit = isProcessExist("com.example.myservice");
+		runProcess("com.example.myservice");
+		LOGD("%d ============================", isExit);
+		sleep(5);
+	}
 
 error:
 	if (g_jvm->DetachCurrentThread() != JNI_OK) {
@@ -149,13 +128,62 @@ error:
 	pthread_exit(0);
 }
 
+
+/**
+ * @return 正在运行 -1,没有运行0;
+ */
+int isDeamonExist(){
+	int ret = -1;
+	FILE * g_lockfile = NULL;
+
+	//检查是否已经有一个supervisor进程在运行
+	g_lockfile = fopen(FLAG_FILE, "a+");
+	if (g_lockfile == NULL)
+	{
+		LOGE("fopen() failed:%s!\n", strerror(errno));
+		return -1;
+	}
+
+	ret = flock(fileno(g_lockfile), LOCK_EX |LOCK_NB);
+	if (ret != 0)
+	{
+		LOGE("this program already running\n");
+		return -1;
+	}
+	return ret;
+}
+
+//使用pidof命令来检测目标进程是否运行（暂时有问题，不知道怎么只能返回0）
+int isProcessExist(const char *processName)
+{
+	char buf[1024];
+	char command[1024];
+	FILE *fp;
+	int ret = 0;
+	sprintf(command, "pidof %s", processName);
+
+	if ((fp = popen(command,"r")) == NULL)
+	{
+		LOGI("popen failed\n");
+		exit(1);
+	}
+
+	if ((fgets(buf,1024,fp))!= NULL )
+	{
+		ret = 1;
+		LOGI("pid is:%s\n", buf);
+	}
+
+	pclose(fp);
+	return ret;
+}
+
 //使用am命令来启动android程序
-void runProcess(const char* packageName, const char* serviceName)
+void runProcess(const char* serviceName)
 {
 	FILE *fp;
 	char command[1024];
-//	sprintf(command, "am start -n %s/%s", packageName, serviceName);
-	//sprintf(command, "am startservice -n %s/%s", packageName, serviceName);
+//	sprintf(command, "am startservice -n %s/%s", packageName, serviceName);
 	sprintf(command, "am startservice -a com.example.myservice");
 	LOGI("run cmd: %s\n", command);
 	if ((fp = popen(command,"r")) == NULL)
@@ -168,36 +196,6 @@ void runProcess(const char* packageName, const char* serviceName)
 
 	pclose(fp);
 }
-
-
-void mytest(JNIEnv *env, jobject ctx){
-	 LOGI("i am deamon==test");
-	 jclass Intent;
-	 jmethodID constructId;
-	 jobject mIntent;
-	 Intent = env->FindClass("android.content.Intent");
-	 constructId = env->GetMethodID(Intent,"<init>","(Ljava/lang/String;)V");
-	 jstring action ;
-	 action = (jstring)env->NewStringUTF("com.example.myservice");
-	 mIntent = env->NewObject(Intent, constructId, action);
-	 if (mIntent == NULL) {
-		 LOGE("i am deamon====NewObject");
-		 exit(0);
-	}
-
-	 jclass Context;
-	 jmethodID startService;
-	 Context = env->GetObjectClass(g_context);
-	 startService = env->GetMethodID(Context, "startService","(Landroid/content/Intent;)Landroid/content/ComponentName;");
-	 if (startService == NULL) {
-		 LOGE("i am deamon====startService");
-		 exit(0);
-	}
-	 env->CallVoidMethod(Context, startService, mIntent);
-	 LOGD("i am deamon====startService");
-
-}
-
 
 JNIEXPORT void Java_com_example_myservice_MainActivity_mainThread(JNIEnv* env, jobject obj){
 	int i;
@@ -213,10 +211,6 @@ JNIEXPORT void Java_com_example_myservice_MainActivity_setJNIEnv(JNIEnv* env, jo
 	g_obj = env->NewGlobalRef(obj);
 }
 
-JNIEXPORT void Java_com_example_myservice_MainActivity_setContext(JNIEnv* env, jobject obj, jobject jCtxObj){
-	g_context = env->NewGlobalRef(jCtxObj);
-}
-
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 	JNIEnv* env = NULL;
 	jint result = -1;
@@ -225,7 +219,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved){
 		LOGE("GetEnv failed!");
 		return result;
 	}
-	 return JNI_VERSION_1_4;
+	return JNI_VERSION_1_4;
 }
 
 

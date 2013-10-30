@@ -30,9 +30,6 @@ public class MyService extends Service{
 //		checkProcess();
 	}
 	
-//	public int onStartCommand(Intent intent, int flags, int startId){
-//		return START_STICKY;
-//	}
 	
 	public int onStartCommand(Intent intent, int flags, int startId) {
         Log.w("MyService","startCommand");
@@ -57,13 +54,6 @@ public class MyService extends Service{
 		}.start();
 	}
 	
-	
-	
-	@SuppressWarnings("deprecation")
-	public void onStart(Intent intent, int startId){
-		super.onStart(intent, startId);
-		Log.i("MyService-->onStart", "1");
-	}
 	
 	public void onDestroy(){
 //		super.onDestroy();

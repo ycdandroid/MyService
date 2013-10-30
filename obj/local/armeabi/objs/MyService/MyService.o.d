@@ -47,6 +47,15 @@ obj/local/armeabi/objs/MyService/MyService.o: jni/MyService.cpp \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/pthread.h \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/time.h \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/sched.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/fcntl.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/linux/fcntl.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm/fcntl.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/fcntl.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/errno.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/linux/errno.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm/errno.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/errno.h \
+ /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/errno-base.h \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/stdlib.h \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/alloca.h \
  /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/strings.h \
@@ -148,6 +157,24 @@ obj/local/armeabi/objs/MyService/MyService.o: jni/MyService.cpp \
 /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/time.h:
 
 /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/sched.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/fcntl.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/linux/fcntl.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm/fcntl.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/fcntl.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/errno.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/linux/errno.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm/errno.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/errno.h:
+
+/home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/asm-generic/errno-base.h:
 
 /home/yinchuandong/android-ndk-r9/platforms/android-14/arch-arm/usr/include/stdlib.h:
 
