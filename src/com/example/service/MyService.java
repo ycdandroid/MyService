@@ -5,6 +5,7 @@ import java.util.List;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -26,7 +27,7 @@ public class MyService extends Service{
 		flag = true;
 		Log.i("MyService-->oncreate", "1");
 		this.startForeground(1, new Notification());
-//		init();
+		init();
 //		checkProcess();
 	}
 	
@@ -48,13 +49,25 @@ public class MyService extends Service{
 				try {
 					while(flag){
 						Thread.sleep(2000);
-						Log.i("MyService-->run", "1");
+						myNotify();
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}.start();
+	}
+	
+	@SuppressWarnings("deprecation")
+	private void myNotify(){
+		NotificationManager manager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+		Notification notification = new Notification();
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		notification.defaults = Notification.DEFAULT_ALL;
+		notification.setLatestEventInfo(getApplicationContext(), "myservice", "hhh", null);
+		manager.notify(4, notification);
 	}
 	
 	
