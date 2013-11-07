@@ -24,8 +24,6 @@ public class MainActivity extends Activity {
 	private Button startBtn;
 	private Button stopBtn;
 	
-//	ScreenStatusReceiver sReceiver;
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -35,21 +33,10 @@ public class MainActivity extends Activity {
 		stopBtn = (Button)findViewById(R.id.stop);
 		bindEvent();
 		
-//		Intent intent2 = new Intent();
-//		intent2.setAction("com.example.broad.action");
-//		sendBroadcast(intent2);
-		
-//		sReceiver = new ScreenStatusReceiver();
-//		IntentFilter screenStatusIF = new IntentFilter();
-//		screenStatusIF.addAction(Intent.ACTION_SCREEN_ON);
-//		screenStatusIF.addAction(Intent.ACTION_SCREEN_OFF);
-//		// 注册
-//		registerReceiver(sReceiver, screenStatusIF);
 	}
 
 	public void onPause(){
 		super.onPause();
-//		unregisterReceiver(sReceiver);
 	}
 	private void bindEvent(){
 		startBtn.setOnClickListener(new OnClickListener() {
@@ -57,11 +44,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				Log.i("MainActivity-->startbtn", "1");
-				Intent intent = new Intent(MainActivity.this, MyService.class);
-				startService(intent);
-				Intent intent2 = new Intent(MainActivity.this, NewService.class);
-				startService(intent2);
-				Log.i("MainActivity", ProcessUtil.checkIsExist(getApplicationContext(), "com.example.service.MyService")+"");
+				setJNIEnv();
+				mainThread();
+				
 			}
 		});
 		
@@ -76,6 +61,19 @@ public class MainActivity extends Activity {
 		});
 	}
 	
-	
+	 //由JNI中的线程回调
+    private static void fromJNI(final int i)
+    {
+    	Log.i("Java------>fromJNI", ""+i);
+    }
+    
+    //设置环境参数
+    private native void setJNIEnv();
+    //守护进程的开启
+    private native void mainThread();
+     
 
+	static {
+		System.loadLibrary("MyService");
+	}
 }
